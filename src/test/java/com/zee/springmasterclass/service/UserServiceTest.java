@@ -44,7 +44,7 @@ class UserServiceTest {
     List<User> users = new ArrayList<>(Collections.singletonList(anna));
 
     given(fakeDataDao.selectAllUsers()).willReturn(users);
-    List<User> allUsers = userService.getAllUsers();
+    List<User> allUsers = userService.getAllUsers(Optional.empty());
     assertThat(allUsers).hasSize(1);
   }
 

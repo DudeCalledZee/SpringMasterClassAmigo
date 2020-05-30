@@ -5,6 +5,7 @@ import com.zee.springmasterclass.service.UserService;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import javax.ws.rs.QueryParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "api/v1/users")
 public class UserController {
 
-  private UserService userService;
+  private final UserService userService;
 
   @Autowired
   public UserController(UserService userService) {
@@ -30,8 +31,8 @@ public class UserController {
   }
 
   @GetMapping
-  public List<User> fetchUsers() {
-    return userService.getAllUsers();
+  public List<User> fetchUsers(@QueryParam("gender") String gender) {
+    return userService.getAllUsers(Optional.ofNullable(gender));
   }
 
   @GetMapping(path = "{userId}")
@@ -40,13 +41,14 @@ public class UserController {
     if (userOptional.isPresent()) {
       return ResponseEntity.ok(userOptional.get());
     }
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage("User with " + uuId + " Id not found"));
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(new ErrorMessage("User with " + uuId + " Id not found"));
   }
 
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<Integer> addUser(@RequestBody User user){
+  public ResponseEntity<Integer> addUser(@RequestBody User user) {
     int addUserResult = userService.addUser(user);
-    if (addUserResult == 1){
+    if (addUserResult == 1) {
       return ResponseEntity.ok().build();
     }
     return ResponseEntity.badRequest().build();
@@ -55,22 +57,23 @@ public class UserController {
   @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Integer> updateUser(@RequestBody User user) {
     int updateUserResult = userService.updateUser(user);
-    if (updateUserResult == 1){
+    if (updateUserResult == 1) {
       return ResponseEntity.ok().build();
     }
     return ResponseEntity.badRequest().build();
   }
 
   @DeleteMapping(path = "{userId}")
-  public ResponseEntity<Integer> deleteUser(@PathVariable("userId") UUID uuId){
+  public ResponseEntity<Integer> deleteUser(@PathVariable("userId") UUID uuId) {
     int deleteUserResult = userService.removeUser(uuId);
-    if (deleteUserResult == 1){
+    if (deleteUserResult == 1) {
       return ResponseEntity.ok().build();
     }
     return ResponseEntity.badRequest().build();
   }
 
   class ErrorMessage {
+
     String errorMessage;
 
     public ErrorMessage(String errorMessage) {
