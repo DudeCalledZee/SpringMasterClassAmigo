@@ -26,8 +26,6 @@ class UserServiceTest {
 
   @Mock
   private FakeDataDao fakeDataDao;
-
-
   private UserService userService;
 
 

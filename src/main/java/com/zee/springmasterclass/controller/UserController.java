@@ -30,12 +30,15 @@ public class UserController {
     this.userService = userService;
   }
 
-  @GetMapping
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public List<User> fetchUsers(@QueryParam("gender") String gender) {
     return userService.getAllUsers(Optional.ofNullable(gender));
   }
 
-  @GetMapping(path = "{userId}")
+  @GetMapping(
+      produces = MediaType.APPLICATION_JSON_VALUE,
+      path = "{userId}"
+  )
   public ResponseEntity<?> fetchUser(@PathVariable("userId") UUID uuId) {
     Optional<User> userOptional = userService.getUser(uuId);
     if (userOptional.isPresent()) {
@@ -45,7 +48,10 @@ public class UserController {
         .body(new ErrorMessage("User with " + uuId + " Id not found"));
   }
 
-  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE
+  )
   public ResponseEntity<Integer> addUser(@RequestBody User user) {
     int addUserResult = userService.addUser(user);
     if (addUserResult == 1) {
@@ -54,7 +60,10 @@ public class UserController {
     return ResponseEntity.badRequest().build();
   }
 
-  @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PutMapping(
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE
+  )
   public ResponseEntity<Integer> updateUser(@RequestBody User user) {
     int updateUserResult = userService.updateUser(user);
     if (updateUserResult == 1) {
@@ -63,7 +72,10 @@ public class UserController {
     return ResponseEntity.badRequest().build();
   }
 
-  @DeleteMapping(path = "{userId}")
+  @DeleteMapping(
+      produces = MediaType.APPLICATION_JSON_VALUE ,
+      path = "{userId}"
+  )
   public ResponseEntity<Integer> deleteUser(@PathVariable("userId") UUID uuId) {
     int deleteUserResult = userService.removeUser(uuId);
     if (deleteUserResult == 1) {
