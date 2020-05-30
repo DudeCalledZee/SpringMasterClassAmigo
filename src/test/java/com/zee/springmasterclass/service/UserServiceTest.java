@@ -1,6 +1,7 @@
 package com.zee.springmasterclass.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -49,14 +50,37 @@ class UserServiceTest {
   }
 
   @Test
+  void shouldGetAllUsersByGender() {
+    UUID uuidAnna = UUID.randomUUID();
+    User anna = new User(uuidAnna, "Anna", "Testerson", Gender.FEMALE, 25, "test@gmail.com");
+
+    UUID uuidFrank = UUID.randomUUID();
+    User frank = new User(uuidFrank, "frank", "frankerson", Gender.MALE, 30, "male@gmail.com");
+
+    List<User> users = new ArrayList<>(Arrays.asList(anna, frank));
+
+    given(fakeDataDao.selectAllUsers()).willReturn(users);
+
+    List<User> filteredUsers = userService.getAllUsers(Optional.of("MALE"));
+    assertThat(filteredUsers).hasSize(1);
+    assertThat(filteredUsers.get(0).getGender()).isEqualTo(Gender.MALE);
+  }
+
+  @Test
+  void shouldThrowExceptionWhenGenderIsInvalid() throws Exception {
+    assertThatThrownBy(() -> userService
+        .getAllUsers(Optional.of("asdasd")))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("Invalid gender ");
+  }
+
+  @Test
   void shouldGetUserById() {
     UUID uuidAnna = UUID.randomUUID();
     User anna = new User(uuidAnna, "Anna", "Testerson", Gender.MALE, 25, "test@gmail.com");
 
     UUID uuidFrank = UUID.randomUUID();
     User frank = new User(uuidFrank, "frank", "Testerson", Gender.FEMALE, 25, "frank@gmail.com");
-
-    List<User> users = new ArrayList<>(Arrays.asList(frank, anna));
 
     given(fakeDataDao.selectUser(uuidFrank)).willReturn(Optional.of(frank));
     Optional<User> user = userService.getUser(uuidFrank);
@@ -78,14 +102,16 @@ class UserServiceTest {
     ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
 
     int updateResult = userService.updateUser(anna);
+    int unknownUserResult = userService
+        .updateUser(new User(UUID.randomUUID(), "bob", "bobs", Gender.MALE, 20, "@gmail"));
 
     verify(fakeDataDao).selectUser(uuidAnna);
     verify(fakeDataDao).updateUser(captor.capture());
 
     User captorValue = captor.getValue();
     assertThat(captorValue).isEqualToComparingFieldByField(anna);
-
     assertThat(updateResult).isEqualTo(1);
+    assertThat(unknownUserResult).isEqualTo(-1);
   }
 
   @Test
@@ -100,6 +126,7 @@ class UserServiceTest {
     ArgumentCaptor<UUID> captor = ArgumentCaptor.forClass(UUID.class);
 
     int deleteResult = userService.removeUser(uuidAnna);
+    int deleteUnknownUserResult = userService.removeUser(UUID.randomUUID());
 
     verify(fakeDataDao).selectUser(uuidAnna);
     verify(fakeDataDao).deleteUser(captor.capture());
@@ -108,6 +135,7 @@ class UserServiceTest {
     assertThat(captorValue).isEqualTo(uuidAnna);
 
     assertThat(deleteResult).isEqualTo(1);
+    assertThat(deleteUnknownUserResult).isEqualTo(-1);
   }
 
   @Test
